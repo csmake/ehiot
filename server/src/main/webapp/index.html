@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+
+    <head>
+        <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+        <meta name="author" content="csmake" />       
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>welcome</title>       <style> 
+            .recv{
+                color:lightgreen;
+                margin-top: 2px;
+            }            
+            .recv:before{
+                content: "R";   
+                display: inline-block;   
+                margin-right: 15px;   
+                background: lightgreen;
+                color: black;
+            }
+            .send{
+                color: #fff;
+            }
+            .send:before{
+                content: "S";
+                display: inline-block;   
+                margin-right: 15px;   
+                background: white;
+                color: black;
+            }
+            .error{
+                color: yellow;
+                margin-top: 2px;
+            }
+            .error:before{
+                content: "E";
+                background: yellow;
+                color: red;
+                display: inline-block;   
+                margin-right: 15px;   
+            }
+            .event{
+                border-bottom: 1px solid blue;
+            }
+            .event:before{
+                content: "M";
+                background: blue;
+                color: white;
+                display: inline-block;   
+                margin-right: 15px;   
+            }
+        </style>
+    </head>
+
+    <body class="stretched" style="background:#000;color:#fff;">
+
+        <div id="wrapper" class="clearfix"> 
+            <div id="console" style='margin-top: 20px;  overflow: auto;padding: 10px; ' ></div>
+        </div><!-- #wrapper end -->
+
+        <script type="text/javascript" src="js/jquery.js"></script> 
+        <script src="js/cn.ehiot.driver.js"></script>
+        <script type="text/javascript">
+            window.log = function (msg, clazz) {
+                if ((Object.prototype.toString.call(msg) == '[object String]')) {
+                    msg = eval("(" + msg + ")");
+                }
+                if (msg && msg.tid) {
+                    if (msg.errcode && msg.errcode != '200') {
+                        clazz = 'error';
+                    }
+                    var obj = $("#console #tid" + msg.tid);
+                    if (obj.length > 0) {
+                        obj.append("<p class='" + (clazz || '') + "'>" + JSON.stringify(msg) + "</p>");
+                    } else {
+                        $("#console").prepend("<p id='tid" + msg.tid + "' class='" + (clazz || '') + "'>" + ((Object.prototype.toString.call(msg) == '[object Object]') ? JSON.stringify(msg) : msg) + "</p>");
+                    }
+                } else {
+                    $("#console").prepend("<p class='" + (clazz || '') + "'>" + ((Object.prototype.toString.call(msg) == '[object Object]') ? JSON.stringify(msg) : msg) + "</p>");
+                }
+            }
+            function note(msg) {
+                $("#console").prepend("<p>//" + msg + "</p>");
+            }
+            $(document).ready(function () {
+                function Fail(e) {
+                    alert(e.message);
+                }
+                var driver = new cn.ehiot.driver({
+                    done: function (data) {
+                        driver.set({version: '2.0'});
+                        note("设置属性");
+                        driver.get(["version"]);
+                        note("获取属性");
+                        driver.help(["version"]);
+                        note("获取帮助");
+                        driver.get(["value"]);
+                        note("获取默认值对象");
+                        driver.get(["systime"]);
+                        note("获取系统时间");
+
+                        driver.trigger([{target: {guid: "guid"}, args: {}, evt: "click"}]);
+                        note("触发事件");
+
+                        driver.getEvent(["click", "error", "change"]);
+                        note("获取事件");
+
+                        driver.reset({done: function (ret) {
+                                alert("系统正在重置...");
+                            }, fail: Fail}, {});
+                        note("系统重置");
+
+                        driver.shutdown({done: function () {
+                                alert("系统正在关机...");
+                            }, fail: Fail}, {"delay": 1000});
+                        note("系统关机");
+
+                        driver.close({done: function () {
+                                alert("会话已经关闭");
+                            }, fail: Fail}, {});
+                        note("关闭会话");
+                    }, fail: Fail
+                }, {guid: 'guid', token: 'token'});
+                note("打开会话");
+            });
+        </script> 
+
+</html>
